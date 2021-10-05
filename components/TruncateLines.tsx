@@ -1,21 +1,21 @@
-import React, { ReactNode, ReactHTML } from 'react'
+import React, { ReactNode } from 'react'
 import cx from 'classnames'
 
 type Props = {
-  as?: keyof ReactHTML
+  as?: keyof JSX.IntrinsicElements
   maxLines: number
   children: ReactNode
   className?: string
 }
 export const TruncateLines = (props: Props) => {
-  const Component = props.as || 'div'
+  const { maxLines, className, children, as: Component = 'div' } = props
   return (
-    <Component className={cx('root', props.className)}>
-      {props.children}
+    <Component className={cx('root', className)}>
+      {children}
       <style jsx>{`
         .root {
           display: -webkit-box;
-          -webkit-line-clamp: ${props.maxLines};
+          -webkit-line-clamp: ${maxLines};
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
