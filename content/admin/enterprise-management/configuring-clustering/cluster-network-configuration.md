@@ -1,50 +1,61 @@
 ---
 title: Cluster network configuration
-intro: '{% data variables.product.prodname_ghe_server %} clustering relies on proper DNS name resolution, load balancing, and communication between nodes to operate properly.'
+intro: 'A {% data variables.product.prodname_ghe_server %} cluster requires proper DNS name resolution, load balancing, and communication between nodes.'
+product: '{% data reusables.gated-features.cluster %}'
 redirect_from:
   - /enterprise/admin/clustering/cluster-network-configuration
   - /enterprise/admin/enterprise-management/cluster-network-configuration
   - /admin/enterprise-management/cluster-network-configuration
 versions:
-  enterprise-server: '*'
+  ghes: '*'
 type: reference
 topics:
   - Clustering
   - Enterprise
   - Infrastructure
   - Networking
+shortTitle: Configure a cluster network
 ---
-### Network considerations
+
+## About networking for a {% data variables.product.product_name %} cluster
+
+Each node in your {% data variables.product.product_name %} cluster must be able to communicate with all of the other nodes in the cluster over the network. You can review the required ports and protocols for end users, administration, and communication between nodes. To distribute traffic among front-end nodes, {% data variables.product.company_short %} recommends that you configure an external load balancer.
+
+## Network considerations
 
 The simplest network design for clustering is to place the nodes on a single LAN. If a cluster must span subnetworks, we do not recommend configuring any firewall rules between the networks. The latency between nodes should be less than 1 millisecond.
 
-{% if currentVersion ver_gt "enterprise-server@2.21" %}For high availability, the latency between the network with the active nodes and the network with the passive nodes must be less than 70 milliseconds. We don't recommend configuring a firewall between the two networks.{% endif %}
+{% data reusables.enterprise_clustering.network-latency %}
 
-#### Application ports for end users
+- [Application ports for end users](#application-ports-for-end-users)
+- [Administrative ports](#administrative-ports)
+- [Cluster communication ports](#cluster-communication-ports)
+
+### Application ports for end users
 
 Application ports provide web application and Git access for end users.
 
 | Port     | Description     | Encrypted  |
 | :------------- | :------------- | :------------- |
-| 22/TCP    | Git over SSH | Yes |
+| 22/TCP    | Git over SSH | {% octicon "check" aria-label="Encrypted" %} |
 | 25/TCP    | SMTP | Requires STARTTLS |
-| 80/TCP    | HTTP | No<br>(When SSL is enabled this port redirects to HTTPS) |
-| 443/TCP   | HTTPS | Yes |
-| 9418/TCP  | Simple Git protocol port<br>(Disabled in private mode) | No |
+| 80/TCP    | HTTP | {% octicon "x" aria-label="Not encrypted" %}<br><br>When SSL is enabled this port redirects to HTTPS |
+| 443/TCP   | HTTPS | {% octicon "check" aria-label="Encrypted" %} |
+| 9418/TCP  | Simple Git protocol port<br>(Disabled in private mode) | {% octicon "x" aria-label="Not encrypted" %} |
 
-#### Administrative ports
+### Administrative ports
 
 Administrative ports are not required for basic application use by end users.
 
 | Port     | Description     | Encrypted  |
 | :------------- | :------------- | :------------- |
-| ICMP      | ICMP Ping | No |
-| 122/TCP   | Administrative SSH | Yes |
-| 161/UDP    | SNMP | No |
-| 8080/TCP  | Management Console HTTP | No<br>(When SSL is enabled this port redirects to HTTPS) |
-| 8443/TCP  | Management Console HTTPS | Yes |
+| ICMP      | ICMP Ping | {% octicon "x" aria-label="Not encrypted" %} |
+| 122/TCP   | Administrative SSH | {% octicon "check" aria-label="Encrypted" %} |
+| 161/UDP    | SNMP | {% octicon "x" aria-label="Not encrypted" %} |
+| 8080/TCP  | Management Console HTTP | {% octicon "x" aria-label="Not encrypted" %}<br><br>When SSL is enabled this port redirects to HTTPS |
+| 8443/TCP  | Management Console HTTPS | {% octicon "check" aria-label="Encrypted" %} |
 
-#### Cluster communication ports
+### Cluster communication ports
 
 If a network level firewall is in place between nodes, these ports will need to be accessible. The communication between nodes is not encrypted. These ports should not be accessible externally.
 
@@ -77,16 +88,16 @@ If a network level firewall is in place between nodes, these ports will need to 
 | 8302/UDP | Consul |
 | 25827/UDP | Collectd |
 
-### Configuring a load balancer
+## Configuring a load balancer
 
  We recommend an external TCP-based load balancer that supports the PROXY protocol to distribute traffic across nodes. Consider these load balancer configurations:
 
- - TCP ports (shown below) should be forwarded to nodes running the `web-server` service. These are the only nodes that serve external client requests.
- - Sticky sessions shouldn't be enabled.
+- TCP ports (shown below) should be forwarded to nodes running the `web-server` service. These are the only nodes that serve external client requests.
+- Sticky sessions shouldn't be enabled.
 
 {% data reusables.enterprise_installation.terminating-tls %}
 
-### Handling client connection information
+## Handling client connection information
 
 Because client connections to the cluster come from the load balancer, the client IP address can be lost. To properly capture the client connection information, additional consideration is required.
 
@@ -94,36 +105,41 @@ Because client connections to the cluster come from the load balancer, the clien
 
 {% data reusables.enterprise_clustering.proxy_xff_firewall_warning %}
 
-#### Enabling PROXY support on {% data variables.product.prodname_ghe_server %}
+### Enabling PROXY support on {% data variables.product.prodname_ghe_server %}
 
 We strongly recommend enabling PROXY support for both your instance and the load balancer.
 
- - For your instance, use this command:
+{% data reusables.enterprise_installation.proxy-incompatible-with-aws-nlbs %}
+
+- For your instance, use this command:
+
   ```shell
-  $ ghe-config 'loadbalancer.proxy-protocol' 'true' && ghe-cluster-config-apply
+  ghe-config 'loadbalancer.proxy-protocol' 'true' && ghe-cluster-config-apply
   ```
-  - For the load balancer, use the instructions provided by your vendor.
 
-  {% data reusables.enterprise_clustering.proxy_protocol_ports %}
+- For the load balancer, use the instructions provided by your vendor.
 
-#### Enabling X-Forwarded-For support on {% data variables.product.prodname_ghe_server %}
+{% data reusables.enterprise_clustering.proxy_protocol_ports %}
+
+### Enabling X-Forwarded-For support on {% data variables.product.prodname_ghe_server %}
 
 {% data reusables.enterprise_clustering.x-forwarded-for %}
 
-To enable the `X-Fowarded-For` header, use this command:
+To enable the `X-Forwarded-For` header, use this command:
 
 ```shell
-$ ghe-config 'loadbalancer.http-forward' 'true' && ghe-cluster-config-apply
+ghe-config 'loadbalancer.http-forward' 'true' && ghe-cluster-config-apply
 ```
 
 {% data reusables.enterprise_clustering.without_proxy_protocol_ports %}
 
-#### Configuring Health Checks
+### Configuring health checks
+
 Health checks allow a load balancer to stop sending traffic to a node that is not responding if a pre-configured check fails on that node. If a cluster node fails, health checks paired with redundant nodes provides high availability.
 
 {% data reusables.enterprise_clustering.health_checks %}
 {% data reusables.enterprise_site_admin_settings.maintenance-mode-status %}
 
-### DNS Requirements
+## DNS requirements
 
 {% data reusables.enterprise_clustering.load_balancer_dns %}

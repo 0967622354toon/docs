@@ -3,13 +3,21 @@ title: Getting started with code security
 shortTitle: Getting started
 intro: 'Introduction to code security with {% data variables.product.product_name %}.'
 versions:
-  free-pro-team: '*'
-  enterprise-server: '>=3.0'
-  github-ae: '*'
+  fpt: '*'
+  ghes: '*'
+  ghae: '*'
+  ghec: '*'
 topics:
-  - Security
+  - Repositories
+  - Dependencies
+  - Vulnerabilities
 children:
-  - /about-securing-your-repository
+  - /github-security-features
+  - /dependabot-quickstart-guide
+  - /securing-your-repository
+  - /securing-your-organization
   - /adding-a-security-policy-to-your-repository
+  - /auditing-security-alerts
+  - /best-practices-for-preventing-data-leaks-in-your-organization
 ---
 

@@ -1,0 +1,14 @@
+@import "@primer/css/support/index.scss";
+
+.aside {
+  @include breakpoint(md) {
+    width: 8rem;
+    height: calc(100vh - 105px);
+    top: 105px;
+  }
+
+  @media (min-width: 1400px) {
+    height: calc(100vh - 65px);
+    top: 65px;
+  }
+}

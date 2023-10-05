@@ -4,13 +4,14 @@ intro: Install GitHub Desktop and connect your GitHub or GitHub Enterprise accou
 redirect_from:
   - /desktop/getting-started-with-github-desktop/installing-and-authenticating-to-github-desktop
 versions:
-  free-pro-team: '*'
+  fpt: '*'
 children:
   - /setting-up-github-desktop
   - /installing-github-desktop
-  - /authenticating-to-github
-  - /about-connections-to-github
+  - /authenticating-to-github-in-github-desktop
+  - /about-connections-to-github-in-github-desktop
   - /updating-github-desktop
   - /uninstalling-github-desktop
+shortTitle: Install & authenticate
 ---
 
